@@ -1,4 +1,11 @@
-# RocksDB Compaction — End-to-End 분석 보고서 (재작성판)
+# RocksDB Compaction — End-to-End 분석 보고서 (재- 포그라운드 예약을 제외한 실효 예산 `B_W, B_R`에서:
+
+$$\Large \boxed{ P_{\max} = \min\big( B_{\text{W}}/\mathrm{WAF},\; B_{\text{R}}/\mathrm{RAFc},\; \text{IOPS/CPU} \big) }$$판)
+
+<style>
+.math { font-size: 120%; }
+.math-display -- 시간이 지나 L0/PCB가 임계산출한 **WAF/RAFc**를 상한식과 트리거 모델에 대입해 **`P- Δ(5s)로- 300 MB/s·WAF≈6.2·RAFc≈5.2의 예시에서 **`P_max`≈48.4 MB/s**, 트리거로 더 낮아질 수 있습니다.**WAF/RAFc 실측** → **`P_max`** 갱신 → L0/PCB, 레벨별 Rd/Wr, stall micros와 **형상** 대조.max`**, **A\***, **`P_adm(t)`**를 갱신합니다. 접근하면 A(t)↓ → A\* 아래로 내려가는 동안 **`P_adm(t) < P_max`**.초반엔 $A(t)\approx1$이라도 **`P_max`**로 클립. font-size: 130%; }
+</style>
 
 _Date:_ 2025-08-29  
 _Assumptions:_ Leveled compaction, 단일 SSD (실효 R/W BW = **300 MB/s**), 트리거: **L0=20/36**, **PCB=64/256 GB**.  
@@ -10,10 +17,10 @@ _File layout:_ 이 MD와 모든 그림 PNG 및 CSV 파일이 **같은 디렉토�
 ## 개요 (Executive Summary)
 
 - **안정 put 상한**은 증폭과 장치 예산으로 결정:  
-  $$P_{\max} = \min\big( B_W/\mathrm{WAF},\; B_R/\mathrm{RAFc},\; \text{IOPS/CPU} \big)$$
-  300 MB/s, WAF≈6.2, RAFc≈5.2 → **P_max≈48.4 MB/s**.
+  $$\Large P_{\max} = \min\big( B_{\text{W}}/\mathrm{WAF},\; B_{\text{R}}/\mathrm{RAFc},\; \text{IOPS/CPU} \big)$$
+  300 MB/s, WAF≈6.2, RAFc≈5.2 → **`P_max`≈48.4 MB/s**.
 - **트리거(백프레셔)**: L0 파일 수·PCB가 임계에 닿으면 수용 계수 A(t)↓ →  
-  $$P_{adm}(t) = \min\big( P_{tgt}\cdot A(t),\; P_{\max} \big)$$
+  $$\Large P_{adm}(t) = \min\big( P_{tgt}\cdot A(t),\; P_{\max} \big)$$
 - **시간 변동**: 다중 레벨이 동시 활성 → 버스티 I/O·톱니형 처리량. L0/PCB 관리를 통해 꼬리(p99) 감소.
 - **튜닝 핵심**: WAF/RAFc↓(파일 크기/병렬/리드어헤드/필터/압축), L0<slowdown·PCB<soft 유지, 컴팩션 BW 보장.
 
@@ -29,18 +36,18 @@ _File layout:_ 이 MD와 모든 그림 PNG 및 CSV 파일이 **같은 디렉토�
 ### 1.2 증폭 지표
 
 - **WAF** (Write Amplification):  
-  $$\mathrm{WAF} = (\textsf{user} + \textsf{compaction\_write}) / \textsf{user}$$
+  $$\large \mathrm{WAF} = \frac{\text{user} + \text{compaction write}}{\text{user}}$$
 - **RAFc** (Compaction Read Amp):  
-  $$\mathrm{RAFc} = \textsf{compaction\_read} / \textsf{user}$$
+  $$\large \mathrm{RAFc} = \frac{\text{compaction read}}{\text{user}}$$
   (Leveled에서 대체로 **RAFc≈WAF−1** 이 성립)
 
 ### 1.3 안정 상태 상한
 
-- 포그라운드 예약을 제외한 실효 예산 $(B_W, B_R)$에서:  
-  $$\boxed{ P_{\max} = \min\big( B_W/\mathrm{WAF},\; B_R/\mathrm{RAFc},\; \text{IOPS/CPU} \big) }$$
-- **예시**(300/300, WAF≈6.2, RAFc≈5.2) → P_max≈48.4 MB/s.
+- 포그라운드 예약을 제외한 실효 예산 `B_W, B_R`에서:  
+  $$\Large \boxed{ P_{\max} = \min\big( B_{\text{W}}/\mathrm{WAF},\; B_{\text{R}}/\mathrm{RAFc},\; \text{IOPS/CPU} \big) }$$
+- **예시**(300/300, WAF≈6.2, RAFc≈5.2) → `P_max`≈48.4 MB/s.
 
-**Figure 1.** P_max vs WAF (RAFc≈WAF−1)  
+**Figure 1.** `P_max` vs WAF (RAFc≈WAF−1)  
 ![Figure 1](fig1_pmax_vs_waf.png)
 
 ---
@@ -50,10 +57,11 @@ _File layout:_ 이 MD와 모든 그림 PNG 및 CSV 파일이 **같은 디렉토�
 ### 2.1 L0 파일 수 S에 대한 수용 함수
 
 $$
-g_{L0}(S) = \begin{cases}
-  1, & S \le S_{slow} \\[2pt]
-  \dfrac{S_{stop}-S}{S_{stop}-S_{slow}}, & S_{slow} < S < S_{stop} \\[8pt]
-  0, & S \ge S_{stop}
+\large
+g_{\text{L0}}(S) = \begin{cases}
+  1, & S \le S_{\text{slow}} \\[2pt]
+  \dfrac{S_{\text{stop}}-S}{S_{\text{stop}}-S_{\text{slow}}}, & S_{\text{slow}} < S < S_{\text{stop}} \\[8pt]
+  0, & S \ge S_{\text{stop}}
  \end{cases}
 $$
 
@@ -63,10 +71,11 @@ $$
 ### 2.2 PCB(C) (Pending Compaction Bytes)에 대한 수용 함수
 
 $$
-g_{PCB}(C) = \begin{cases}
-  1, & C \le C_{soft} \\[2pt]
-  \dfrac{C_{hard}-C}{C_{hard}-C_{soft}}, & C_{soft} < C < C_{hard} \\[8pt]
-  0, & C \ge C_{hard}
+\large
+g_{\text{PCB}}(C) = \begin{cases}
+  1, & C \le C_{\text{soft}} \\[2pt]
+  \dfrac{C_{\text{hard}}-C}{C_{\text{hard}}-C_{\text{soft}}}, & C_{\text{soft}} < C < C_{\text{hard}} \\[8pt]
+  0, & C \ge C_{\text{hard}}
  \end{cases}
 $$
 
@@ -75,15 +84,15 @@ $$
 
 ### 2.3 즉시 수용 put
 
-- **합성 수용 계수**: $A(t)=g_{L0}(S(t))\cdot g_{PCB}(C(t))$
-- **즉시 수용**: $\boxed{ P_{adm}(t) = \min\big( P_{tgt}A(t),\; P_{\max} \big) }$
-- **임계치**: $A^* = P_{\max}/P_{tgt}$. A(t)≥A* → WAF 지배(=P_max), A(t)<A* → 트리거 지배.
+- **합성 수용 계수**: $\large A(t)=g_{\text{L0}}(S(t))\cdot g_{\text{PCB}}(C(t))$
+- **즉시 수용**: $\Large \boxed{ P_{adm}(t) = \min\big( P_{tgt}A(t),\; P_{\max} \big) }$
+- **임계치**: $\large A^* = P_{\max}/P_{tgt}$. A(t)≥A* → WAF 지배(=`P_max`), A(t)<A* → 트리거 지배.
 
 ---
 
 ## 3. 시간 변동과 임계 A\*
 
-**Figure 4.** P_adm(t) = min(P_tgt·A(t), P_max)  
+**Figure 4.** `P_adm(t) = min(P_tgt·A(t), P_max)`  
 ![Figure 4](fig4_Padm_timeseries.png)
 
 **Figure 5.** Acceptance factors over time: g_L0, g_PCB, A(t), A\*  
@@ -142,7 +151,7 @@ $$
 - **처리량 우선**: 32/64 + 파일 크기/병렬 상향(PCB·꼬리 모니터링 필수)
 
 **목표 역산** (필요 장치 예산):  
-$B_W \ge P_{target}\cdot \mathrm{WAF},\; B_R \ge P_{target}\cdot \mathrm{RAFc}$
+$$\large B_{\text{W}} \ge P_{\text{target}}\cdot \mathrm{WAF},\; B_{\text{R}} \ge P_{\text{target}}\cdot \mathrm{RAFc}$$
 
 ---
 
