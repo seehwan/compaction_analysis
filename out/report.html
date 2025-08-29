@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RocksDB Compaction — End-to-End 분석 보고서</title>
+    <link rel="stylesheet" href="report-styles.css" />
+
+    <!-- KaTeX for math rendering -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/katex.min.js"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/katex@0.16.8/dist/contrib/auto-render.min.js"
+      onload="renderMathInElement(document.body, {
+                delimiters: [
+                    {left: '$$', right: '$$', display: true},
+                    {left: '$', right: '$', display: false}
+                ]
+            });"
+    ></script>
+
+    <!-- Marked.js for Markdown parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  </head>
+  <body>
+    <div id="content">
+      <!-- Markdown content will be loaded here -->
+    </div>
+
+    <script>
+      // Fetch and render the Markdown file
+      fetch('RocksDB_Compaction_Report_FULL.md')
+        .then((response) => response.text())
+        .then((markdown) => {
+          // Configure marked options
+          marked.setOptions({
+            breaks: true,
+            gfm: true,
+            headerIds: true,
+          })
+
+          // Convert Markdown to HTML
+          const html = marked.parse(markdown)
+          document.getElementById('content').innerHTML = html
+
+          // Re-render math after content is loaded
+          if (typeof renderMathInElement !== 'undefined') {
+            renderMathInElement(document.body, {
+              delimiters: [
+                { left: '$$', right: '$$', display: true },
+                { left: '$', right: '$', display: false },
+              ],
+            })
+          }
+        })
+        .catch((error) => {
+          console.error('Error loading markdown:', error)
+          document.getElementById('content').innerHTML =
+            '<p>Error loading report. Please check if RocksDB_Compaction_Report_FULL.md exists in the same directory.</p>'
+        })
+    </script>
+  </body>
+</html>
