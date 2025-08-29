@@ -34,11 +34,11 @@ All tunables live in `config.yaml`:
 - `series`: simple synthetic shapes for L0 files/PCB vs time (for illustrative time-series)
 
 ### Figures
-- `fig1_pmax_vs_waf.png` — steady-state bound vs WAF (RAFc≈WAF−1)
-- `fig2_gL0.png` — g_L0(S)
-- `fig3_gPCB.png` — g_PCB(C)
-- `fig4_Padm_timeseries.png` — P_adm(t) = min(P_tgt·A(t), P_max)
-- `fig5_acceptance_timeseries.png` — g_L0, g_PCB, A(t), A*
+- `fig1_pmax_vs_waf.png` — steady-state bound vs WAF (RAFc ≈ WAF−1)
+- `fig2_gL0.png` — g<sub>L0</sub>(S)
+- `fig3_gPCB.png` — g<sub>PCB</sub>(C)
+- `fig4_Padm_timeseries.png` — P<sub>adm</sub>(t) = min(P<sub>tgt</sub>·A(t), P<sub>max</sub>)
+- `fig5_acceptance_timeseries.png` — g<sub>L0</sub>, g<sub>PCB</sub>, A(t), A*
 - `fig6_trigger_aggressive.png` — Accepted Put (12/24)
 - `fig7_trigger_default.png` — Accepted Put (20/36)
 - `fig8_trigger_lenient.png` — Accepted Put (32/64)
@@ -46,16 +46,20 @@ All tunables live in `config.yaml`:
 ### Deriving WAF/RAFc from stats (Δ-window method)
 For a window Δt (e.g., 5 s):
 - ΔU: user ingest bytes (from app layer or db_bench interval)
-- ΔC_w: compaction write bytes (diff of counters)
-- ΔC_r: compaction read bytes (diff of counters)
+- ΔC<sub>w</sub>: compaction write bytes (diff of counters)
+- ΔC<sub>r</sub>: compaction read bytes (diff of counters)
 
-```text
-WAF  = (ΔU + ΔC_w) / ΔU
-RAFc =  ΔC_r / ΔU
-P_max = min(B_W / WAF, B_R / RAFc)
-A*(t) = P_max / P_tgt
-P_adm(t) = min(P_tgt * A(t), P_max), where A(t)=g_L0(S(t))*g_PCB(C(t))
-```
+**Formulas:**
+
+WAF = (ΔU + ΔC<sub>w</sub>) / ΔU
+
+RAFc = ΔC<sub>r</sub> / ΔU
+
+P<sub>max</sub> = min(B<sub>W</sub> / WAF, B<sub>R</sub> / RAFc)
+
+A*(t) = P<sub>max</sub> / P<sub>tgt</sub>
+
+P<sub>adm</sub>(t) = min(P<sub>tgt</sub> × A(t), P<sub>max</sub>), where A(t) = g<sub>L0</sub>(S(t)) × g<sub>PCB</sub>(C(t))
 
 ### License
 MIT
