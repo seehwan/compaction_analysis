@@ -1,11 +1,19 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "compaction_analysis"
 version = "0.1.0"
 description = "Plots and simple models for RocksDB compaction analysis"
-authors = [{name="Mobile-OS Lab", email=""}]
+authors = [{name="Mobile-OS Lab", email="mobile-os-lab@example.com"}]
 requires-python = ">=3.9"
 dependencies = [
     "matplotlib>=3.5",
     "numpy>=1.22",
     "pyyaml>=6.0"
 ]
+
+[tool.setuptools.packages.find]
+include = ["compaction_analysis*"]
+exclude = ["out*", "scripts*"]

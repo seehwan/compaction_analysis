@@ -11,8 +11,11 @@ Reproducible plotting toolkit for **RocksDB compaction** analysis.
 
 ```bash
 # Python 3.9+
-python -m venv .venv && source .venv/bin/activate  # (Windows: .venv\Scripts\activate)
-pip install -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate  # (Windows: .venv\Scripts\activate)
+
+# Install the package in development mode
+pip install -e .
 
 # Render all figures into out/
 python scripts/plot_all.py
