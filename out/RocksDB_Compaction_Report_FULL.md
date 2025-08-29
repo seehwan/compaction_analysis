@@ -1,10 +1,17 @@
-# RocksDB Compaction — End-to-End 분석 보고서 (재- 포그라운드 예약을 제외한 실효 예산 `B_W, B_R`에서:
-
-$$\Large \boxed{ P_{\max} = \min\big( B_{\text{W}}/\mathrm{WAF},\; B_{\text{R}}/\mathrm{RAFc},\; \text{IOPS/CPU} \big) }$$판)
+# RocksDB Compaction — End-to-End 분석 보고서 (재작성판)
 
 <style>
 .math { font-size: 120%; }
-.math-display -- 시간이 지나 L0/PCB가 임계산출한 **WAF/RAFc**를 상한식과 트리거 모델에 대입해 **`P- Δ(5s)로- 300 MB/s·WAF≈6.2·RAFc≈5.2의 예시에서 **`P_max`≈48.4 MB/s**, 트리거로 더 낮아질 수 있습니다.**WAF/RAFc 실측** → **`P_max`** 갱신 → L0/PCB, 레벨별 Rd/Wr, stall micros와 **형상** 대조.max`**, **A\***, **`P_adm(t)`**를 갱신합니다. 접근하면 A(t)↓ → A\* 아래로 내려가는 동안 **`P_adm(t) < P_max`**.초반엔 $A(t)\approx1$이라도 **`P_max`**로 클립. font-size: 130%; }
+.math-display { font-size: 130%; }
+img { 
+  max-width: 100%; 
+  height: auto; 
+  display: block; 
+  margin: 10px auto; 
+  border: 1px solid #ddd; 
+  border-radius: 4px; 
+  padding: 5px; 
+}
 </style>
 
 _Date:_ 2025-08-29  
@@ -48,7 +55,7 @@ _File layout:_ 이 MD와 모든 그림 PNG 및 CSV 파일이 **같은 디렉토�
 - **예시**(300/300, WAF≈6.2, RAFc≈5.2) → `P_max`≈48.4 MB/s.
 
 **Figure 1.** `P_max` vs WAF (RAFc≈WAF−1)  
-![Figure 1](fig1_pmax_vs_waf.png)
+<img src="fig1_pmax_vs_waf.png" alt="Figure 1" width="600">
 
 ---
 
@@ -66,7 +73,7 @@ g_{\text{L0}}(S) = \begin{cases}
 $$
 
 **Figure 2.** g_L0(S) with slowdown=20, stop=36  
-![Figure 2](fig2_gL0.png)
+<img src="fig2_gL0.png" alt="Figure 2" width="600">
 
 ### 2.2 PCB(C) (Pending Compaction Bytes)에 대한 수용 함수
 
@@ -80,7 +87,7 @@ g_{\text{PCB}}(C) = \begin{cases}
 $$
 
 **Figure 3.** g_PCB(C) with soft=64 GB, hard=256 GB  
-![Figure 3](fig3_gPCB.png)
+<img src="fig3_gPCB.png" alt="Figure 3" width="600">
 
 ### 2.3 즉시 수용 put
 
@@ -93,10 +100,10 @@ $$
 ## 3. 시간 변동과 임계 A\*
 
 **Figure 4.** `P_adm(t) = min(P_tgt·A(t), P_max)`  
-![Figure 4](fig4_Padm_timeseries.png)
+<img src="fig4_Padm_timeseries.png" alt="Figure 4" width="800">
 
 **Figure 5.** Acceptance factors over time: g_L0, g_PCB, A(t), A\*  
-![Figure 5](fig5_acceptance_timeseries.png)
+<img src="fig5_acceptance_timeseries.png" alt="Figure 5" width="800">
 
 - 초반엔 $A(t)\approx1$이라도 **P_max**로 클립.
 - 시간이 지나 L0/PCB가 임계에 접근하면 A(t)↓ → A\* 아래로 내려가는 동안 **P_adm(t) < P_max**.
@@ -129,13 +136,13 @@ $$
 - **Lenient (32/64)**: 수용↑ 가능, PCB/꼬리 리스크↑
 
 **Figure 6.** Accepted put — Aggressive (12/24)  
-![Figure 6](fig6_trigger_aggressive.png)
+<img src="fig6_trigger_aggressive.png" alt="Figure 6" width="700">
 
 **Figure 7.** Accepted put — Default-ish (20/36)  
-![Figure 7](fig7_trigger_default.png)
+<img src="fig7_trigger_default.png" alt="Figure 7" width="700">
 
 **Figure 8.** Accepted put — Lenient (32/64)  
-![Figure 8](fig8_trigger_lenient.png)
+<img src="fig8_trigger_lenient.png" alt="Figure 8" width="700">
 
 > 원자료: [trigger scenarios timeseries CSV](final_trigger_scenarios_timeseries.csv)
 
