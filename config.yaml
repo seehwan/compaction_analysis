@@ -1,0 +1,37 @@
+device:
+  B_W: 300.0   # MB/s effective write BW
+  B_R: 300.0   # MB/s effective read BW
+
+workload:
+  P_tgt: 400.0   # MB/s
+
+amp:
+  WAF: 6.2
+  RAFc: 5.2      # often ≈ WAF-1 in leveled
+
+triggers:
+  L0_slow: 20
+  L0_stop: 36
+  PCB_soft_GB: 64
+  PCB_hard_GB: 256
+
+series:
+  # Synthetic time-series parameters (for illustrative graphs)
+  # L0 files S(t) ≈ s0 + s_gain * t + s_amp * sin(s_freq * t); clipped to [0, s_clip]
+  S:
+    s0: 10.0
+    s_gain: 0.12
+    s_amp: 2.5
+    s_freq: 0.15
+    s_clip: 34.0
+  # PCB C(t) (GB) → convert to MB in code
+  C:
+    c0: 0.0
+    c_gain: 0.55
+    c_amp: 6.0
+    c_freq: 0.03
+    c_clip_GB: 140.0
+
+output:
+  out_dir: "out"
+  dpi: 140
